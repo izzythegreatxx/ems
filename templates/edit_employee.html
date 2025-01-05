@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Employee{% endblock %}
+{%block header%}
+{%endblock%}
+
+{% block content %}
+<h1>Edit Employee: {{ employee.firstName }} {{ employee.lastName }}</h1>
+<form id="editForm" data-employee-id="{{ employee.employeeId }}" onsubmit="submitForm(event)">
+    <label>First Name:</label>
+    <input type="text" name="firstName" value="{{ employee.firstName }}" required><br>
+    <label>Last Name:</label>
+    <input type="text" name="lastName" value="{{ employee.lastName }}" required><br>
+    <label>Email:</label>
+    <input type="email" name="email" value="{{ employee.email }}" required><br>
+    <label>Salary:</label>
+    <input type="number" name="salary" value="{{ employee.salary }}" required><br>
+    <label>Start Date:</label>
+    <input type="date" name="startDate" value="{{ employee.startDate }}" required><br>
+    <label>Title:</label>
+    <input type="text" name="title" value="{{ employee.title }}" required><br>
+    <button type="submit">Save Changes</button>
+</form>
+<a href="/employees">Back to Employees</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

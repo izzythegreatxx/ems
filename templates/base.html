@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Flask App{% endblock %}</title>
+    <!-- Link to the CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="content-wrapper">
+        
+        {% block header %}
+        <header>
+            <h1>Welcome to My Employee Management System <br>
+                created with <span class="highlight">Flask!</span>
+            </h1>
+        </header>
+        {% endblock %}
+       
+
+        <main>
+            {% block content %}
+            <nav>
+                <a href="/login"><button type="submit">Login</button></a>
+                <a href="/register"><button type="submit">Register</button></a>
+            </nav>
+            {% endblock %}
+        </main>
+    </div>
+    <footer>
+        <p>&copy; 2025 My Flask App</p>
+    </footer>
+    {%block scripts%}{%endblock%}
+</body>
+</html>

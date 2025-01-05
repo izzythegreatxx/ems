@@ -1,0 +1,29 @@
+{%extends "base.html"%}
+{%block header%}
+<h1>Add New Employee</h1>
+{%endblock%}
+{%block title%}Add New Employee{%endblock%}
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    
+    {%block content%}
+    <form method="POST" action="/employees/add">
+        <label>First Name:</label>
+        <input type="text" name="firstName" required><br>
+        <label>Last Name:</label>
+        <input type="text" name="lastName" required><br>
+        <label>Email:</label>
+        <input type="email" name="email" required><br>
+        <label>Salary:</label>
+        <input type="number" name="salary" required><br>
+        <label>Start Date:</label>
+        <input type="date" name="startDate" required><br>
+        <label>Title:</label>
+        <input type="text" name="title" required><br>
+        <button type="submit">Add Employee</button>
+    </form>
+    <a href="/employees">Back to Employees</a>
+    {%endblock%}
+
+

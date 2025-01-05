@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+{% block header %}<h1>Create an account!</h1>{% endblock %}
+
+{% block content %}
+<p>Password must Contain: </p>
+<ul>
+    <li>10 or more characters in length</li>
+    <li>both letters and numbers</li>
+</ul>   
+
+<!-- Display error message if it exists -->
+{% if error %}
+    <span class="error"><p style="color:red;">{{ error }}</p></span>
+{% endif %}
+
+<form action="/register" method="POST">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required><br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required><br>
+    <button type="submit">Register</button>
+</form>
+<a href="/">Home</a>
+{% endblock %}

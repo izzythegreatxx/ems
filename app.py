@@ -1,42 +1,28 @@
+from flask import Flask, jsonify, request, session, render_template, redirect, url_for
+from functools import wraps
+from datetime import datetime
 import json
 import bcrypt
 import logging
-import time
 import random
-import string
 
 
-#session times out after 10 minutes of being logged in
-SESSION_TIMEOUT = 10 * 60 
-#max login attempts in 10 minute window
-MAX_ATTEMPTS = 5
-#max attempts before CAPTCHA is triggered
-MAX_ATTEMPTS_BEFORE_CAPTCHA = 3
-#duration blocked user will have to wait (5 minutes)
-BLOCK_DURATION = 300
-#10 minute time window 
-TIME_WINDOOW = 10 * 60
+# Initialize Flask app
+app = Flask(__name__)
+app.secret_key = "asdkj51325khgbjjkmk"
 
-#dictionary to hold login attempts for each user
-login_attempts = {}
-
-def generate_captcha():
-    """Generate a random 6-character CAPTCHA."""
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-
-def verify_captcha(user_input, captcha):
-    """Verify if the CAPTCHA entered is correct."""
-    return user_input.strip() == captcha
-
-                
+# Logging 
 logging.basicConfig(
-    filename = "employee_management.log",
-    level=logging.DEBUG, 
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("employee_management.log"),
+        logging.StreamHandler()
+    ]
 )
 
 
-# class to handle individual employees
+# Define Employee class
 class Employee:
     def __init__(self, employeeId, firstName, lastName, email, salary, startDate, title):
         self.employeeId = employeeId
@@ -46,357 +32,287 @@ class Employee:
         self.salary = salary
         self.startDate = startDate
         self.title = title
-    # dictionary to store Employee objects for JSON serialization
+
     def emp_to_dict(self):
-        return{
+        return {
             "employeeId": self.employeeId,
-            "firstName": self.firstName, 
+            "firstName": self.firstName,
             "lastName": self.lastName,
             "email": self.email,
             "salary": self.salary,
-            "start date": self.startDate,
-            "title": self.title
+            "startDate": self.startDate,
+            "title": self.title,
         }
+
     @staticmethod
     def from_dict(data):
         return Employee(
-            data["employeeId"], 
-            data["firstName"],
-            data["lastName"],
-            data["email"],
-            data["salary"],
-            data["start date"],
-            data["title"]
+            data.get("employeeId", ""),
+            data.get("firstName", ""),
+            data.get("lastName", ""),
+            data.get("email", ""),
+            data.get("salary", 0),
+            data.get("startDate", "N/A"), 
+            data.get("title", "")
         )
-# class to handle list of employees        
+
+# Define Employees class
 class Employees:
-    def __init__(self) -> None:
+    def __init__(self):
         self.employeeList = []
-    #appends employees to the list
+
     def add_employee(self, employee):
         self.employeeList.append(employee)
         logging.info(f"Added employee: {employee.employeeId} - {employee.firstName} {employee.lastName}")
-        
-    #shows all employees except for the one that matches the employee id
+
     def remove_employee(self, employeeId):
-        before_count = len(self.employeeList)
         self.employeeList = [emp for emp in self.employeeList if emp.employeeId != employeeId]
-        after_count = len(self.employeeList)
-        if before_count > after_count:
-            logging.info(f"Removed employee: {employeeId}")
-        else:
-            logging.warning(f"Attempted to remove non-exixtent employee ID: {employeeId}")
-            
-    #updates employee. If nothing updated it skips the option
-    def update_employee_info(self, employeeId, firstName = None, lastName = None, email=None, salary= None, startDate=None, title= None):
-        updated = False
+
+    def update_employee_info(self, employeeId, **kwargs):
         for emp in self.employeeList:
             if emp.employeeId == employeeId:
-                if firstName is not None and emp.firstName != firstName:
-                    emp.firstName = firstName
-                    updated = True
-                if lastName is not None and emp.lastName != lastName:
-                    emp.lastName = lastName
-                    updated = True
-                if email is not None and emp.email != email:
-                    emp.email = email
-                    updated = True
-                if salary is not None and emp.salary != salary:
-                    emp.salary = salary
-                    updated = True
-                if startDate is not None and emp.startDate != startDate:
-                    emp.startDate = startDate
-                    updated = True
-                if title is not None and emp.title != title:
-                    emp.title = title
-                    updated = True
-                if updated:
-                    logging.info(f"Updated employee: {employeeId}")
-                else: 
-                    print(f"No updates made to employee: {employeeId}")
-                return 
-        logging.warning(f"Attempted to update non-existent employee ID: {employeeId}")
-        
-    # save employee data to a JSON file
+                for key, value in kwargs.items():
+                    if value is not None:  # Update only non-None values
+                        setattr(emp, key, value)
+                logging.info(f"Updated employee: {employeeId}")
+                return True
+        logging.warning(f"Employee ID {employeeId} not found")
+        return False
+
     def save_to_file(self, filename="employees.json"):
         with open(filename, "w") as file:
-            json.dump([emp. emp_to_dict() for emp in self.employeeList], file)
-            
-    # load employee list from JSON file
+            json.dump([emp.emp_to_dict() for emp in self.employeeList], file)
+
     def load_from_file(self, filename="employees.json"):
         try:
             with open(filename, "r") as file:
                 self.employeeList = [Employee.from_dict(emp) for emp in json.load(file)]
         except FileNotFoundError:
-            print(f"File {filename} not found. Starting with an empty employee list.")
+            print("No employee file found. Starting with an empty list.")
         except json.JSONDecodeError:
-            print(f"File {filename} is not in valid JSON format. Starting wiht an empty list. ")
+            print("Corrupted employee file. Starting fresh.")
 
-
-#Utility functions
-def showAllEmployees(employeeList):
-    for emp in employeeList:
-        print(f"ID: {emp.employeeId}, First Name: {emp.firstName}, Last Name: {emp.lastName}, Email: {emp.email}, Salary: {emp.salary}, Start Date: {emp.startDate}, Title: {emp.title}")
-        
-
-def addNewEmployee(employeeList, employeeId, firstName, lastName, email, salary, startDate, title):
-    new_employee = Employee(employeeId, firstName, lastName, email, salary, startDate, title)
-    employeeList.add_employee(new_employee)
-    
-def removeEmployee(employeeList, employeeId):
-    employeeList.remove_employee(employeeId)
-    
-def updateEmployeeInfo(employeeList, employeeId, firstName=None, lastName=None, email=None, salary=None, startDate=None, title=None):
-    employeeList.update_employee_info(employeeId, firstName, lastName, email, salary, title)
-    
-#register and authenticate password
+# Authentication class
 class Authentication:
     def __init__(self, users_file="users.json"):
         self.users_file = users_file
         self.users = {}
         self.load_users()
-        
+
     def load_users(self):
-    #load users and hashed passwords from JSON
-        try: 
+        try:
             with open(self.users_file, "r") as file:
                 self.users = json.load(file)
-        except FileNotFoundError:
-            print(f"{self.users_file} not found. Starting with an empty user database.")
+        except (FileNotFoundError, json.JSONDecodeError):
             self.users = {}
-        except json.JSONDecodeError:
-            print(f"{self.users_file} is not in valid JSON format. Starting fresh.")
-            self.users = {}
-            
+
     def save_users(self):
-        #save users and hashed passwords to a JSON file.
         with open(self.users_file, "w") as file:
             json.dump(self.users, file)
-            
+
     def register_user(self, username, password):
-        #register a new user and hashed password
         username = username.lower().strip()
         if username in self.users:
-            print("Username already exists. Choose a different username.")
             return False
         hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-        self.users[username]=hashed_password.decode()
+        self.users[username] = hashed_password.decode()
         self.save_users()
-        print("User registered successfully.")
-        logging.info(f"Added '{username}' to users.")
         return True
-        
-    def authenticate(self, username, password):
-        #verify user by comparing provided password with hashed password
-        if username not in self.users:
-            print("Invalid username.")
-            return False
-        stored_hashed_password = self.users[username].encode()
-        if bcrypt.checkpw(password.encode(), stored_hashed_password):
-            print("Authentication successful!")
-            logging.info(f"User '{username}' logged in.")
-            return True
-        else: 
-            print("Invalid password.")
-            logging.warning(f"User '{username}' attempted to log in.")
-            return False
-    #removes user from users    
-    def remove_user(self, username):
-        if username in self.users:
-            del self.users[username]
-            self.save_users()
-            logging.info(f"Removed '{username}' from users.")
-            return True
-        else:
-            print(f"User '{username}' does not exist.")
-            logging.warning("Attempted removal of user.")
-            return False
-#login or register
-if __name__ == "__main__":
-    auth = Authentication()
-    
-    while True:
-        print("-"*10 + "Register or Login" + "-"*10)
-        print("1) Register user")
-        print("2) Login")
-        print("3) Exit")
-        
-        choice = int(input("Please select an option (1-3): "))
-        
-        if choice == 1:
-            username = input("Enter a new username: ").lower().strip()
-        
-            
-            while True:
-                password = input("Enter a new password: ")
-                if len(password) < 10:
-                    print("Password must be longer than 10 characters.")
-                elif not any(char.isdigit() for char in password):
-                    print("Password must contain both letters and numbers.")
-                elif not any(char.isalpha() for char in password): 
-                    print("Password must contain both letters and numbers.")
-                else:
-                    break
-            auth.register_user(username, password)
-            auth.save_users()
-            
-        elif choice == 2:
-            while True:
-                username = input("Enter your username: ").strip().lower()
-                current_time = time.time()
-                # Initialize login attempts for user if they're not in dictionary
-                if username not in login_attempts: 
-                    login_attempts[username] = {"attempts": [], "blocked until": 0}
-                # check if current user is blocked
-                if login_attempts[username]["blocked until"]> current_time:
-                    print("Too many failed attemts. Please try again later.")
-                    continue
-                
-                # Remove expired attempts from log
-                login_attempts[username]["attempts"] =[attempt for attempt in login_attempts[username]["attempts"] if current_time - attempt < TIME_WINDOOW]
-                
-                #check if CAPTCHA is required
-                if len(login_attempts[username]["attempts"]) >= MAX_ATTEMPTS_BEFORE_CAPTCHA:
-                    captcha = generate_captcha()
-                    print(f"CAPTCHA Challenge: {captcha}")
-                    captcha_input = input("Enter CAPTCHA: ").strip()
-                    if not verify_captcha(captcha_input, captcha):
-                        print("Incorrect CAPTCHA. Please try again.")
-                        logging.warning(f"User '{username}' failed CAPTCHA validation.")
-                        login_attempts[username]["attempts"].append(current_time)
-                        continue
-                # if login attempts exceed the max limit, block the user
-                if len(login_attempts[username]["attempts"])>+MAX_ATTEMPTS:
-                    login_attempts[username]["blocked_until"] = current_time + BLOCK_DURATION
-                    print("Too many failed attempts. You are temporarily blocked. Please try again in 5 minutes.")
-                    logging.warning(f"User '{username}' blocked due to excessive login atempts.")
-                    continue
-                #Validate username                        
-                if username not in auth.users:
-                    print("Invalid username. Please try again.")
-                    logging.warning(f"Invalid username attempt:  {username}")
-                    login_attempts[username]["attempts"].append(current_time)
-                    continue
-                break
-            #prompt for passwod
-            password = input("Enter your password: ")
-            if auth.authenticate(username, password):
-                print("Welcome!")
-                logging.info(f"User '{username}' logged in successfully.")
-                #clear attempts on successful login
-                login_attempts.pop(username, None)
-                
-                employees = Employees()
-                #load data at start of program
-                employees.load_from_file()
-                
-                login_time = time.time()
-                while True:
-                    elapsed_time= time.time() - login_time
-                    if elapsed_time > SESSION_TIMEOUT:
-                        print("Your session has expired. Please log in to resume.")
-                        break
-                    #show menu
-                    print("-"*10 + "Menu" + "-"*10)
-                    print("1) Add New Employee")
-                    print("2) Update Employee Info")
-                    print("3) Remove Employee")
-                    print("4) Show Current Employees")
-                    print("5) Remove user")
-                    print("6) Exit")
-                    
-                    try:
-                        choice = int(input("Please select an option (1-6)"))
-                    except ValueError:
-                        print("Invalid input. Please enter a number between 1 and 6.")
-                        continue
-                    
-                    if choice == 1:
-                    # Add New Employee
-                        employeeId = input("Enter new employee ID: ")
-                        if any(emp.employeeId == employeeId for emp in employees.employeeList):
-                            print(f"Employee ID '{employeeId}' already exists. Please use a unique ID.")
-                            continue
-                        
-                        if len(employeeId) < 4:
-                            print("Employee ID must be at least 4 numbers.")
-                            continue
-                        firstName = input("Enter First Name: ")
-                        lastName = input("Enter Last Name: ")
-                        email = input("Enter email: ")
-                        salary = float(input("Enter Salary: "))
-                        startDate = input("Enter Start Date (YYYY-MM-DD): ")
-                        title = input("Enter employee title: ")
-                        addNewEmployee(employees, employeeId, firstName, lastName, email, salary, startDate, title)
-                        print("Employee added successfully.")
-                        logging.info(f"Employee '{employeeId}' added to Employees.")
-    
-                    elif choice == 2:
-                    # Update Employee Info
-    
-                        employeeId = input("Enter Employee ID to update: ")
-                        if not any(emp.employeeId == employeeId for emp in employees.employeeList):
-                            print(f"Employee {employeeId} not found. Please enter valid employee ID.")
-                            continue  
-                        firstName = input("Enter new First Name (leave blank to skip): ")
-                        lastName = input("Enter new Last Name (leave blank to skip): ")
-                        email = input("Enter new Email (leave blank to skip): ")
-                        startDate = input("Enter new start Date (leave blank to skip): ")
-                        salary = input("Enter new salary (leave blank to skip): ")
-                        try:
-                            salary = float(salary.strip()) if salary.strip() else None
-                        except ValueError:
-                            print("Invalid salary input. Please enter a valid number.")
-                            continue
-                        title= input("Enter new title (leave blank to skip): ")
-                        updateEmployeeInfo(employees, employeeId, firstName or None, lastName or None, email or None, salary or None, startDate or None, title or None)
-                        print("Employee information updated successfully.")
-                        logging.info(f"Employee'{employeeId}' has been updated.")
-        
-                    elif choice == 3:
-                    #Remove Employee
-                        employeeId = input("Enter Employee ID to remove: ")
-                        if any(emp.employeeId == employeeId for emp in employees.employeeList):
-                            removeEmployee(employees, employeeId)
-                            employees.save_to_file()
-                            print(f"Employee {employeeId} removed successfully.")
-                            logging.info(f"Employee'{employeeId}' has been removed.")
-                        else:
-                            print(f"Employee {employeeId} not found.")
-                            logging.warning(f"Attempted to remove non-existent employee: {employeeId}")
-                            
-                    elif choice == 4: 
-                    # Show Current Employees 
-                        showAllEmployees(employees.employeeList)
-                    
-                    elif choice == 5:
-                    # remove user
-                        remove_username = input("Enter the username to remove: ").strip().lower()
-                        if remove_username == username:
-                            print("You cannot remove your own account while logged in.")
-                            continue
-                        if auth.remove_user(remove_username):
-                            print(f"User '{remove_username}' has been removed successfully.")
-                        else:
-                           print(f"user '{remove_username}' does not exist.")
-                        auth.save_users()
-        
-                    elif choice == 6:
-                    # Exit
-                        employees.save_to_file()
-                        print("Data saved. Exiting program.")
-                        break
-                    else:
-                        print("Invalid choice, please select a valid option.")
-            else:
-                print("Invalid password. Please try again.")
-                logging.warning(f"User '{username}' failed to log in.")
-                # Add failed attempt
-                current_time = time.time()
-                login_attempts[username]["attempts"].append(current_time)
 
-        elif choice == 3:
-            print("Exiting. Goodbye.")
-            break
+    def authenticate(self, username, password):
+        username = username.lower().strip()
+        if username in self.users:
+            hashed_password = self.users[username].encode()
+            return bcrypt.checkpw(password.encode(), hashed_password)
+        return False
+
+# Decorator for login-required routes
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return jsonify({"error": "Authentication required"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Initialize global objects
+employees = Employees()
+employees.load_from_file()
+auth = Authentication()
+
+# Routes
+@app.route('/')
+def home():
+    return render_template("base.html")
+
+@app.route('/register', methods=['GET', 'POST'])
+def register_user():
+    if request.method == 'POST':
+        # Handle form submission
+        data = request.form
+        username = data.get("username")
+        password = data.get("password")
+        
+        # Validate input
+        if not username or not password:
+            return render_template("register.html", error="Username and password are required.")
+        
+        # Password validation
+        if len(password) < 10:
+            return render_template("register.html", error="Password must be at least 10 characters long.")
+        if not any(char.isdigit() for char in password):
+            return render_template("register.html", error="Password must contain at least one number.")
+        if not any(char.isalpha() for char in password):
+            return render_template("register.html", error="Password must contain at least one letter.")
+        
+        # Register user
+        if auth.register_user(username, password):
+            return render_template("login.html", success="Registration successful. Please log in.")
         else:
-            print("Invalid choice. Please select a valid option.")
+            return render_template("register.html", error="Username already exists.")
+    
+    # Render registration page for GET request
+    return render_template("register.html")
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login_user():
+    if request.method == 'POST':
+        data = request.form
+        username = data.get("username")
+        password = data.get("password")
+        
+        if auth.authenticate(username, password):
+            session['username'] = username
+            return redirect(url_for('dashboard'))  # Ensure this points to the correct dashboard route
+        else:
+            return render_template("login.html", error="Invalid username or password.")
+    
+    return render_template("login.html")  # Render login page for GET request
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    current_date = datetime.now().strftime("%B %d, %Y") 
+    return render_template("dashboard.html", username=session['username'], current_date = current_date)
+
+
+@app.route('/logout', methods=['POST', 'GET'])
+def logout_user():
+    session.pop('username', None)
+    return redirect(url_for('login_user'))  # Redirect to the login page
+
+
+@app.route('/employees', methods=['GET'])
+@login_required
+def get_employees():
+    return render_template("employees.html", employees=employees.employeeList)
+
+
+@app.route('/employees/add', methods=['GET', 'POST'])
+@login_required
+def add_employee():
+    if request.method == 'POST':
+        # Check if the request is JSON (API call)
+        if request.is_json:
+            data = request.get_json()
+        else:
+            # Otherwise, handle form data (HTML form submission)
+            data = request.form
+
+        try:
+            # Convert salary to float for both JSON and form data
+            salary = float(data.get("salary", 0))
+            new_employee = Employee(
+                employeeId=str(random.randint(1000, 9999)),  # Generate a random ID
+                firstName=data.get("firstName"),
+                lastName=data.get("lastName"),
+                email=data.get("email"),
+                salary=salary,
+                startDate=data.get("startDate"),
+                title=data.get("title"),
+            )
+            employees.add_employee(new_employee)
+            employees.save_to_file()
+
+            # Return JSON response for API calls
+            if request.is_json:
+                return jsonify({"message": "Employee added successfully"}), 201
+
+            # Redirect to employees list for form submissions
+            return redirect(url_for('get_employees'))
+        except Exception as e:
+            # Handle errors
+            if request.is_json:
+                return jsonify({"error": f"Failed to add employee: {str(e)}"}), 400
+            return render_template("add_employee.html", error=f"Failed to add employee: {str(e)}")
+
+    # Render the "Add Employee" form for GET requests
+    return render_template("add_employee.html")
+
+
+@app.route('/employees/edit/<string:employee_id>', methods=['GET', 'POST', 'PUT'])
+@login_required
+def edit_employee(employee_id):
+    # Find the employee in the list
+    emp = next((e for e in employees.employeeList if e.employeeId == employee_id), None)
+    if not emp:
+        return "Employee not found", 404
+
+    if request.method == 'GET':
+        # Render the edit employee form with the current employee data
+        return render_template("edit_employee.html", employee=emp)
+
+    if request.method in ['POST', 'PUT']:
+        # Handle form data from HTML for 'POST' and JSON data for 'PUT'
+        if request.method == 'POST':
+            data = request.form  # Use form data from HTML
+        else:
+            data = request.get_json()  # Use JSON data from PUT request
+
+        try:
+            # Convert salary to float with proper error handling for both 'POST' and 'PUT'
+            salary = float(data.get("salary", 0))
+        except ValueError:
+            return render_template("edit_employee.html", employee=emp, error="Invalid salary input.")
+
+        # Proceed with the update logic
+        success = employees.update_employee_info(
+            employeeId=employee_id,
+            firstName=data.get("firstName"),
+            lastName=data.get("lastName"),
+            email=data.get("email"),
+            salary=salary,
+            startDate=data.get("startDate"),
+            title=data.get("title")
+        )
+
+        if success:
+            employees.save_to_file()
+            if request.method == 'PUT':
+                logging.info(f"User {employee_id} updated.")
+                return jsonify({"message": "Employee updated successfully"}), 200
+            else:
+                return redirect(url_for('get_employees'))
+        else:
+            if request.method == 'PUT':
+                return jsonify({"error": "An error occurred when updating."}), 500
+            else:
+                return render_template("edit_employee.html", employee=emp, error="An error occurred when updating.")
+
+
+
+@app.route('/employees/remove/<string:employee_id>', methods=['POST'])
+@login_required
+def delete_employee(employee_id):
+    # Check for the `_method` override
+    if request.form.get('_method') == 'DELETE':
+        employees.remove_employee(employee_id)
+        employees.save_to_file()
+        return redirect(url_for('get_employees'))
+    return jsonify({"error": "Invalid request method"}), 400
+
+
+# Run the app
+if __name__ == "__main__":
+    app.run(debug=True)

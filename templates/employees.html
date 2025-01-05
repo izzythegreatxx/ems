@@ -1,0 +1,65 @@
+{%extends "base.html"%}
+{%block header%}
+{%endblock%}
+{%block content%}
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 2px;
+        }
+    </style>
+
+    <h1>Manage Employees</h1>
+    <a href="/dashboard">Back to Dashboard</a> 
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Salary</th>
+                <th>Start Date</th>
+                <th>Title</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td>{{ emp.employeeId }}</td>
+                <td>{{ emp.firstName }}</td>
+                <td>{{ emp.lastName }}</td>
+                <td>{{ emp.email }}</td>
+                <td>{{ emp.salary }}</td>
+                <td>{{ emp.startDate }}</td>
+                <td>{{ emp.title }}</td>
+                <td>
+                    <a href="/employees/edit/{{ emp.employeeId }}"><button>Edit</button></a>
+                    <form action="/employees/remove/{{ emp.employeeId }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" style="color: red;" onclick="return confirm('Are you sure you want to delete this employee?');">
+                            Remove
+                        </button>
+                    </form>
+                    
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{%endblock%}

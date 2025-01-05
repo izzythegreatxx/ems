@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{%block header%}<h1>Welcome, {{ username }}!</h1>{%endblock%}
+
+{% block content %}
+<p>Today is: <storng>{{ current_date }}</strong></p>
+<br>
+<p>Here you can manage your employees, 
+<nav>
+    <ul>
+        <li><a href="/employees">Manage Current Employees</a></li>
+        <li><a href="/employees/add">Add New Employee</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+{% endblock %}
