@@ -53,13 +53,18 @@ button {
     gap: 20px;
     margin-top: 20px;
 }
-
+.dashboard-button {
+    background-color: #45a049;
+    padding: 10px 20px;
+}
 .login-button {
     background-color: #4caf50;
+    padding: 10px 20px;
 }
 
 .login-button:hover {
     background-color: #45a049;
+
     
 }
 
