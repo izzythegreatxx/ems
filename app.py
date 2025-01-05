@@ -22,7 +22,7 @@ logging.basicConfig(
 )
 
 
-# Define Employee class
+# Define Employee class to represent each individual employee
 class Employee:
     def __init__(self, employeeId, firstName, lastName, email, salary, startDate, title):
         self.employeeId = employeeId
@@ -32,7 +32,7 @@ class Employee:
         self.salary = salary
         self.startDate = startDate
         self.title = title
-
+    # Converting Employee objects to a dictionary for saving to a file
     def emp_to_dict(self):
         return {
             "employeeId": self.employeeId,
@@ -43,7 +43,7 @@ class Employee:
             "startDate": self.startDate,
             "title": self.title,
         }
-
+    # static method to convert dictionary objects back to Employee objects to load 
     @staticmethod
     def from_dict(data):
         return Employee(
@@ -56,18 +56,21 @@ class Employee:
             data.get("title", "")
         )
 
-# Define Employees class
+# Class that manages the employee list 
 class Employees:
     def __init__(self):
         self.employeeList = []
-
+        
+    #adds new employee to the list of current employees 
     def add_employee(self, employee):
         self.employeeList.append(employee)
         logging.info(f"Added employee: {employee.employeeId} - {employee.firstName} {employee.lastName}")
-
+        
+    # removes existing employees from the current list
     def remove_employee(self, employeeId):
         self.employeeList = [emp for emp in self.employeeList if emp.employeeId != employeeId]
-
+        
+    # updates a current employees information
     def update_employee_info(self, employeeId, **kwargs):
         for emp in self.employeeList:
             if emp.employeeId == employeeId:
@@ -78,11 +81,13 @@ class Employees:
                 return True
         logging.warning(f"Employee ID {employeeId} not found")
         return False
-
+    
+    # saves employee to empoyees.json file 
     def save_to_file(self, filename="employees.json"):
         with open(filename, "w") as file:
             json.dump([emp.emp_to_dict() for emp in self.employeeList], file)
-
+            
+    # loads employees from employees.json file 
     def load_from_file(self, filename="employees.json"):
         try:
             with open(filename, "r") as file:
@@ -92,24 +97,27 @@ class Employees:
         except json.JSONDecodeError:
             print("Corrupted employee file. Starting fresh.")
 
-# Authentication class
+# Authentication class manages user registration and login functionality 
 class Authentication:
     def __init__(self, users_file="users.json"):
         self.users_file = users_file
         self.users = {}
         self.load_users()
-
+        
+    # loads the users from the users.json file
     def load_users(self):
         try:
             with open(self.users_file, "r") as file:
                 self.users = json.load(file)
         except (FileNotFoundError, json.JSONDecodeError):
             self.users = {}
-
+            
+    # saves the user to the users.json file
     def save_users(self):
         with open(self.users_file, "w") as file:
             json.dump(self.users, file)
-
+            
+    # function to register new users. Uses bcrypt for password hashing
     def register_user(self, username, password):
         username = username.lower().strip()
         if username in self.users:
@@ -118,7 +126,8 @@ class Authentication:
         self.users[username] = hashed_password.decode()
         self.save_users()
         return True
-
+    
+    # authenticates user by using bcrypt for validating passwords
     def authenticate(self, username, password):
         username = username.lower().strip()
         if username in self.users:
@@ -128,6 +137,7 @@ class Authentication:
 
 # Decorator for login-required routes
 def login_required(f):
+    #helps maintain the original data of the function that is decorated
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'username' not in session:
@@ -208,6 +218,7 @@ def logout_user():
 def get_employees():
     return render_template("employees.html", employees=employees.employeeList)
 
+#--------EMPLOYEE CRUD OPERATIONS--------------->
 
 @app.route('/employees/add', methods=['GET', 'POST'])
 @login_required

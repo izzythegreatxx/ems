@@ -1,5 +1,11 @@
+// code to update and delete employees using PUT and DELETE methods 
+// this code is needed since HTML forms do not support PUT and DELETE methods
+
+
+// function to update employee
 async function submitForm(event) {
-    event.preventDefault(); // Prevent the default form submission behavior
+    // Prevent the default form submission behavior
+    event.preventDefault(); 
 
     const form = event.target;
     const formData = new FormData(form);
@@ -7,6 +13,7 @@ async function submitForm(event) {
 
     const employeeId = form.getAttribute("data-employee-id"); // Get employee ID from form attribute
     try {
+        // send the PUT request
         const response = await fetch(`/employees/edit/${employeeId}`, {
             method: "PUT",
             headers: {
@@ -37,6 +44,7 @@ async function submitForm(event) {
 async function deleteEmployee(employeeId) {
     if (confirm("Are you sure you want to delete this employee?")) {
         try {
+            // send the DELETE request
             const response = await fetch(`/employees/remove/${employeeId}`, {
                 method: "DELETE",
                 headers: {
