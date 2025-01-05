@@ -1,6 +1,5 @@
-# ems
-web based employee management system 
-this is a web based employee management system created with python and flask.
+
+this is a web based employee management system created with python, flask, some javaScript, html, and css.
 
 Features
 -User Authentication: secure login and registration with password validation
