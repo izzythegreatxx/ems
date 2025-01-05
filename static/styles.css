@@ -31,6 +31,10 @@ nav {
     margin: 0;
     transform: translateY(-20%);
 }
+
+.login-text {
+    margin-bottom: 10px;
+}
 .highlight {
     display: inline;
     font-size: 2em; 
@@ -64,8 +68,38 @@ button {
 
 .login-button:hover {
     background-color: #45a049;
+}
 
-    
+.register-button {
+    margin-top: 10px;
+}
+
+
+.form-container {
+    display: flex;
+    flex-direction: column; 
+    align-items: center;    
+    justify-content: center; 
+    min-height: 100vh;      
+    text-align: center;     
+    background-color: #006666; 
+    color: white;           
+}
+
+
+.password-requirements {
+    margin-bottom: 20px;
+}
+
+.password-requirements ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+.password-requirements li {
+    margin: 5px 0; 
 }
 
 form {
@@ -76,6 +110,20 @@ form {
     height: 100vh;
     margin: 0;
     transform: translateY(-20%);
+}
+.login-container {
+    min-height: 100vh;
+    background-color: #006666;
+}
+
+.dashboard-container {
+    min-height: 100vh;
+    background-color: #006666;
+}
+
+.date {
+    color: white;
+    font-family: 'Lato', serif;
 }
 footer {
     background-color: #333;

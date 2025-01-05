@@ -26,8 +26,13 @@
         <main>
             {% block content %}
             <nav>
-                <a href="/login"><button type="submit">Login</button></a>
-                <a href="/register"><button type="submit">Register</button></a>
+                <div class="auth-container">
+                    <p>Already have an account? <a href="/login">Login here</a></p>
+                    <p>Or</p>
+                    <p><a href="/register">Register</a></p>
+                </div>
+                
+
             </nav>
             {% endblock %}
         </main>

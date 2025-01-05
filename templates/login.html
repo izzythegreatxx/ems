@@ -5,14 +5,15 @@
 {% if error %}
     <p style="color:red;">{{ error }}</p>
 {% endif %}
-
-<form action ="/login" method="POST">
-    <label>Username:</label>
-    <input type="text" name="username" required><br>
-    <label>Password:</label>
-    <input type="password" name="password" required><br>
-    <button class="login-button" type="submit">Login</button>
-</form>
+<div class="login-container">
+    <form action ="/login" method="POST">
+        <label>Username:</label>
+        <input type="text" name="username" required><br>
+        <label>Password:</label>
+        <input type="password" name="password" required><br>
+        <button class="login-button" type="submit">Login</button>   
+    </form>
+</div>
 <a href="/register">Don't have an account? Register here</a>
 <br>
 <a href="/">Home</a>
