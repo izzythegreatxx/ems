@@ -1,0 +1,19 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore pytest cache
+.pytest_cache/
+
+# Ignore log files
+*.log
+
+# Ignore environment files
+.env
+
+# Ignore JSON data files if they are not part of the project
+employees.json
+users.json
+
+# Ignore any unwanted GitHub-related files
+.github/
