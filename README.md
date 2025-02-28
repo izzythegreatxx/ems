@@ -9,5 +9,6 @@ Features
 Logging
   -comprehensive logging for tracking actions and errors
 Storage
-  -Data stored in employees.json and users.json
+  -Data is managed by SQLite database
+  
   
