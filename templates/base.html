@@ -40,6 +40,8 @@
     <footer>
         <p>&copy; 2025 My Flask App</p>
     </footer>
-    {%block scripts%}{%endblock%}
+    {%block scripts%}
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {%endblock%}
 </body>
 </html>

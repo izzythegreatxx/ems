@@ -12,6 +12,7 @@ async function submitForm(event) {
     const employeeData = Object.fromEntries(formData.entries());
 
     const employeeId = form.getAttribute("data-employee-id"); // Get employee ID from form attribute
+    console.log("Submitting update for Employee ID:", employeeId); //debugging
     try {
         // send the PUT request
         const response = await fetch(`/employees/edit/${employeeId}`, {
@@ -44,26 +45,27 @@ async function submitForm(event) {
 async function deleteEmployee(employeeId) {
     if (confirm("Are you sure you want to delete this employee?")) {
         try {
-            // send the DELETE request
             const response = await fetch(`/employees/remove/${employeeId}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                method: "DELETE",  
+                headers: { "Content-Type": "application/json" }
             });
 
-            if (response.ok) {
-                const result = await response.json();
-                alert(result.message);
-                const row = document.getElementById(`employee-${employeeId}`);
-                if (row) row.remove();
-            } else {
-                const error = await response.json();
-                alert(`Error: ${error.message || "Failed to delete employee."}`);
+            const result = await response.json();
+            
+            if (!response.ok) {
+                alert(`Error: ${result.error || "Failed to delete employee."}`);
+                return;
             }
+
+            alert(result.message); // Show success message
+
+            // Remove employee row from the table dynamically
+            const row = document.getElementById(`employee-${employeeId}`);
+            if (row) row.remove();
         } catch (err) {
             console.error("Error:", err);
             alert("An unexpected error occurred.");
         }
     }
 }
+

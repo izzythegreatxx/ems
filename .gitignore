@@ -11,9 +11,9 @@ __pycache__/
 # Ignore environment files
 .env
 
-# Ignore JSON data files if they are not part of the project
-employees.json
-users.json
+# Ignore SQLite database files
+*.db
+*.sqlite3
+instance/
+migrations/versions/
 
-# Ignore any unwanted GitHub-related files
-.github/
