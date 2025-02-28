@@ -13,8 +13,9 @@ body {
 header {
     font-family: sans-serif;
     font-size: large;
+    margin-top: 10px;
 }
-h1 {
+h1, p, ul {
     font-family: "Lato", serif;
     font-weight: 400;
     font-style: normal;
@@ -50,9 +51,22 @@ nav {
     font-size: large;
 }
 
+/* Style the submit button */
 button {
-    border-radius: 8px;
+    width: auto;
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
     border: none;
+    border-radius: 8px; /* Rounded corners */
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* Change button color on hover */
+button:hover {
+    background-color: #0056b3;
 }
 .button-container {
     display: flex;
@@ -79,15 +93,50 @@ button {
 }
 
 
-.form-container {
+.container {
     display: flex;
     flex-direction: column; 
     align-items: center;    
     justify-content: center; 
-    min-height: 100vh;      
+    min-height: 100vh;
+    width: 100%;    
     text-align: center;     
     background-color: #006666; 
+    border-radius: 8px;
     color: white;           
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    transform: translateY(-20%);
+}
+
+input {
+    border-radius: 8px; /* Adjust the radius for a softer look */
+    border: 2px solid #ccc; /* Optional: keeps a clean border */
+    padding: 8px; /* Ensures spacing inside the input */
+    font-size: 16px;
+}
+
+/* Flex container for side-by-side inputs */
+.name-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Adjust spacing between fields */
+    width: 100%;
+    max-width: 500px; /* Optional: Limits the width of both inputs */
+}
+
+/* Ensure each input field takes up equal space */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Makes both inputs equal in width */
 }
 
 
@@ -106,20 +155,6 @@ button {
     margin: 5px 0; 
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    transform: translateY(-20%);
-}
-.login-container {
-    min-height: 100vh;
-    background-color: #006666;
-}
-
 .dashboard-container {
     min-height: 100vh;
     background-color: #006666;
@@ -133,7 +168,7 @@ footer {
     background-color: #333;
     color: white;
     text-align: center;
-    padding: 10px 0;
+    padding: 0;
     position: fixed;
     width: 100%;
     bottom: 0;
