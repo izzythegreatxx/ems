@@ -50,7 +50,7 @@
                 <td>{{ emp.title }}</td>
                 <td>
                     <a href="/employees/edit/{{ emp.id }}"><button>Edit</button></a>
-                    <button style="color: red;" onclick="deleteEmployee({{ emp.id }})">
+                    <button class="delete-button" onclick="deleteEmployee({{ emp.id }})">
                         Remove
                     </button>
                     

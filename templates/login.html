@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 
-{%block header%}<h1>Login</h1>{%endblock%}
+{% block header %}
+    <h1>Login</h1>
+{% endblock %}
+
 {% block content %}
 {% if error %}
     <p style="color:red;">{{ error }}</p>
 {% endif %}
 <div class="container">
-    <form action ="/login" method="POST">
+    <form action="/login" method="POST">
         <label>Username:</label>
         <input type="text" name="username" required><br>
         <label>Password:</label>
@@ -16,4 +19,21 @@
 </div>
 <a href="/register">Don't have an account? Register here</a>
 <a href="/">Home</a>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}  <!-- This keeps any scripts from the base template -->
+
+    <!-- Flash message JavaScript -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                window.onload = function() {
+                    {% for category, message in messages %}
+                        alert("{{ message }}");
+                    {% endfor %}
+                };
+            </script>
+        {% endif %}
+    {% endwith %}
 {% endblock %}

@@ -30,9 +30,8 @@
         <header>
             <h1>Streamline Your Workforce with <br>
                 Our Employee Management System</h1>
-            <p>Manage employees, track salaries, and simplify HR tasks—all in one place.</p>
-            
         </header>
+        <p>Manage employees, track salaries, and simplify HR tasks—all in one place.</p>
         {% endblock %}
        
 
@@ -49,8 +48,22 @@
     <footer>
         <p>&copy; 2025 My Flask App</p>
     </footer>
-    {%block scripts%}
+    {% block scripts %}
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    {%endblock%}
+
+    <!-- JavaScript for Flash Message Popup -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                window.onload = function() {
+                    {% for category, message in messages %}
+                        alert("{{ message }}");  // Display flash message as an alert
+                    {% endfor %}
+                };
+            </script>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
 </body>
 </html>

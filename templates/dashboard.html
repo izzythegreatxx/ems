@@ -1,18 +1,21 @@
 {% extends "base.html" %}
 
 {% block title %}Dashboard{% endblock %}
-{%block header%}<h1>Welcome, {{ username }}!</h1>{%endblock%}
+
+{% block header %}
+{% endblock %}
 
 {% block content %}
-<div class="container">
-     <span class="date"><p>Today is <storng>{{ current_date }}</strong></p></span>
-    
-    <nav>
-        <div class="button-container">
-            <a href="/employees"><button class="dashboard-button" type="submit">Manage Current Employees</button></a>
-            <a href="/employees/add"><button class="dashboard-button" type="submit">Add New Employee</button></a>
-            <a href="/logout"><button class="dashboard-button" type="submit">Logout</button></a>
-        </div>
-    </nav>
+<div class="dashboard-container">
+    <div class="header-container">
+        <h1>Welcome, {{ username }}!</h1>
+        <span class="date"><p>Today is <strong>{{ current_date }}</strong></p></span>
+    </div>
+
+    <div class="button-container">
+        <a href="/employees"><button class="dashboard-button" type="submit">Manage Current Employees</button></a>
+        <a href="/employees/add"><button class="dashboard-button" type="submit">Add New Employee</button></a>
+        <a href="/logout"><button class="dashboard-button" type="submit">Logout</button></a>
+    </div>
 </div>
 {% endblock %}

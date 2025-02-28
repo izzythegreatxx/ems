@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, session, render_template, redirect, url_for
+from flask import Flask, jsonify, request, session, render_template, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from models import db, Employee, User
@@ -109,6 +109,9 @@ auth = Authentication()
 # home page
 @app.route('/')
 def home():
+    if "username" in session:
+        current_date = datetime.today().strftime('%A, %B %d, %Y')
+        return render_template("dashboard.html", username=session["username"], current_date = current_date)
     return render_template("base.html")
 
 #about us page
@@ -155,26 +158,38 @@ def register_user():
 # login page
 @app.route('/login', methods=['GET', 'POST'])
 def login_user():
+    if "username" in session:
+        flash("You are already logged in!", "info")  # Flash message
+        return redirect(url_for("dashboard"))  # ✅ Correct redirect
+
     if request.method == 'POST':
         data = request.form
         username = data.get("username")
         password = data.get("password")
-        
+
         if auth.authenticate(username, password):
-            session['username'] = username
+            session['username'] = username  # ✅ Store username in session
             logging.info(f"User {username} has logged in.")
-            return redirect(url_for('dashboard'))  
+            return redirect(url_for("dashboard"))  # ✅ Redirect to dashboard (no arguments needed)
         else:
+            flash("Invalid username or password.", "error")
             return render_template("login.html", error="Invalid username or password.")
-    
-    return render_template("login.html")  
+
+    return render_template("login.html")
+
 
 # dashboard
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    current_date = datetime.now().strftime("%B %d, %Y") 
-    return render_template("dashboard.html", username=session['username'], current_date = current_date)
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    username = session["username"]  # Retrieve username from session
+    current_date = datetime.now().strftime("%B %d, %Y")  # Generate current date
+
+    return render_template("dashboard.html", username=username, current_date=current_date)
+
 
 # logout
 @app.route('/logout', methods=['POST', 'GET'])
