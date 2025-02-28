@@ -4,15 +4,7 @@
 {% block header %}<h1>Create an account!</h1>{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="password-requirements">
-        <p>Password must Contain: </p>
-        <ul>
-            <li>10 or more characters in length</li>
-            <li>both letters and numbers</li>
-        </ul>
-    </div>  
-    <br> 
+<div class="reg-container">
 
     <!-- Display error message if it exists -->
     {% if error %}
@@ -43,7 +35,7 @@
         <br>
         <input type="password" id="password" name="password" required>
         <br>
-        <button type="submit">Register</button><a href="/">Home</a>
+        <button type="submit">Register</button>
     </form>
 </div>
 {% endblock %}

@@ -106,10 +106,22 @@ def login_required(f):
 auth = Authentication()
 
 # Routes
+# home page
 @app.route('/')
 def home():
     return render_template("base.html")
 
+#about us page
+@app.route('/about')
+def about_us():
+    return render_template("about.html")
+
+# contact us page
+@app.route('/contact')
+def contact_us():
+    return render_template("contact.html")
+
+# registration page
 @app.route('/register', methods=['GET', 'POST'])
 def register_user():
     if request.method == 'POST':
@@ -140,7 +152,7 @@ def register_user():
     # Render registration page for GET request
     return render_template("register.html")
 
-
+# login page
 @app.route('/login', methods=['GET', 'POST'])
 def login_user():
     if request.method == 'POST':
@@ -157,20 +169,21 @@ def login_user():
     
     return render_template("login.html")  
 
+# dashboard
 @app.route('/dashboard')
 @login_required
 def dashboard():
     current_date = datetime.now().strftime("%B %d, %Y") 
     return render_template("dashboard.html", username=session['username'], current_date = current_date)
 
-
+# logout
 @app.route('/logout', methods=['POST', 'GET'])
 def logout_user():
     session.pop('username', None)
     
     return redirect(url_for('login_user'))  # Redirect to the login page
 
-
+# employees
 @app.route('/employees', methods=['GET'])
 @login_required
 def get_employees():

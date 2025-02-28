@@ -12,6 +12,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="nav-container">
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/register">Register</a></li>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+            </ul>
+        </nav>
+    </div>
+    
     <div class="content-wrapper">
         
         {% block header %}
@@ -26,15 +38,11 @@
 
         <main>
             {% block content %}
-            <nav>
                 <div class="auth-container">
                     <p>Already have an account? <a href="/login">Login here</a></p>
                     <p>Or</p>
                     <p><a href="/register">Register for an account!</a></p>
                 </div>
-                
-
-            </nav>
             {% endblock %}
         </main>
     </div>
