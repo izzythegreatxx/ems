@@ -4,7 +4,7 @@ import os
 
 # Add the project root to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from app import app  # Import your Flask app
+from app import app 
 
 @pytest.fixture
 def client():
@@ -15,7 +15,7 @@ def client():
 def test_home_page(client):
     response = client.get('/')
     assert response.status_code == 200
-    assert b"Welcome to My Employee Management System" in response.data
+    assert b"Streamline Your Workforce with" in response.data
 
 def test_login_page(client):
     response = client.get('/login')
