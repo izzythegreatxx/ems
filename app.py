@@ -5,11 +5,24 @@ from models import db, Employee, User
 from functools import wraps
 from datetime import datetime
 import os
-import json
-import bcrypt
 import logging
 from logging.handlers import RotatingFileHandler 
-import random
+
+
+"""
+This Flask application serves as the backend for the Employee Management System.
+
+Features:
+- Configures and initializes an SQLite database using SQLAlchemy.
+- Implements logging with file rotation for better log management.
+- Provides user authentication and registration through the `Authentication` class.
+- Manages user sessions and access control.
+- Handles routing for employee CRUD (Create, Read, Update, Delete) operations.
+- Supports both HTML form-based interactions and JSON API requests.
+
+This system enables efficient employee data management, including salary tracking,
+start dates, and job titles, making HR processes more streamlined.
+"""
 
 
 # Initialize Flask app
@@ -134,11 +147,11 @@ def login_user():
         if auth.authenticate(username, password):
             session['username'] = username
             logging.info(f"User {username} has logged in.")
-            return redirect(url_for('dashboard'))  # Ensure this points to the correct dashboard route
+            return redirect(url_for('dashboard'))  
         else:
             return render_template("login.html", error="Invalid username or password.")
     
-    return render_template("login.html")  # Render login page for GET request
+    return render_template("login.html")  
 
 @app.route('/dashboard')
 @login_required
