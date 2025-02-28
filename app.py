@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, session, render_template, redirect, u
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from models import db, Employee, User
+from dotenv import load_dotenv
 from functools import wraps
 from datetime import datetime
 import os
@@ -24,11 +25,14 @@ This system enables efficient employee data management, including salary trackin
 start dates, and job titles, making HR processes more streamlined.
 """
 
+load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = "asdkj51325khgbjjkmk"
 
+
+# Set environment variables
+app.secret_key = os.getenv("SECRET_KEY", "fallback_secret_key")
 # Configure Database URI
 # using sqlite for local development
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///employees.db')
