@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <h1>Employee Login</h1>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
+<div class="container">
+    <form action="{{ url_for('employee_login') }}" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required><br>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required><br>
+        <button class="login-button" type="submit">Login</button>   
+    </form>
+</div>
+<a href="/">Home</a>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}  <!-- This keeps any scripts from the base template -->
+
+    <!-- Flash message JavaScript -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                window.onload = function() {
+                    {% for category, message in messages %}
+                        alert("{{ message }}");
+                    {% endfor %}
+                };
+            </script>
+        {% endif %}
+    {% endwith %}
+{% endblock %}

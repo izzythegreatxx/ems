@@ -18,9 +18,21 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/about">About</a></li>
                 <li><a href="/register">Register</a></li>
-                <li><a href="/login">Login</a></li>
                 <li><a href="/contact">Contact Us</a></li>
+            
+                {% if session.get("is_admin") %}
+                    <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+                    <li><a href="{{ url_for('logout_user') }}">Logout</a></li>
+                {% elif session.get("employee_id") %}
+                    <li><a href="{{ url_for('employee_dashboard') }}">Employee Dashboard</a></li>
+                    <li><a href="{{ url_for('logout_user') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login_user') }}">Login</a></li>
+                    <li><a href="{{ url_for('employee_login') }}">Employee Login</a></li>
+                {% endif %}
             </ul>
+            
+            
         </nav>
     </div>
     
@@ -29,7 +41,7 @@
         {% block header %}
         <header>
             <h1>Streamline Your Workforce with <br>
-                Our Employee Management System</h1>
+                SonorAlign HR Management Solutions!</h1>
         </header>
         <p>Manage employees, track salaries, and simplify HR tasks—all in one place.</p>
         {% endblock %}
@@ -46,7 +58,7 @@
         </main>
     </div>
     <footer>
-        <p>&copy; 2025 My Flask App</p>
+        <p>&copy; 2025 SonorAlign HR Management Solutions</p>
     </footer>
     {% block scripts %}
     <script src="{{ url_for('static', filename='script.js') }}"></script>

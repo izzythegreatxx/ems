@@ -6,8 +6,12 @@ from dotenv import load_dotenv
 from functools import wraps
 from datetime import datetime
 import os
+import jwt
 import logging
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
 from logging.handlers import RotatingFileHandler 
+import random
 
 
 """
@@ -30,12 +34,26 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
-
 # Set environment variables
 app.secret_key = os.getenv("SECRET_KEY", "fallback_secret_key")
+
+# ✅ Flask-Mail Configuration (Ensure .env variables are loaded)
+app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 587))  # Convert to int
+app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "True") == "True"  # Convert to boolean
+app.config["MAIL_USERNAME"] = os.getenv("EMAIL_USER")  # Load email
+app.config["MAIL_PASSWORD"] = os.getenv("EMAIL_PASS")  # Load password
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("EMAIL_USER")  # Set sender email
+
+mail = Mail(app)
+
+serializer=URLSafeTimedSerializer(app.secret_key)
+
+
 # Configure Database URI
 # using sqlite for local development
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///employees.db')
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR}/employees.db')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -102,9 +120,38 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def token_required(f):
+    """JWT Token Authentication Decorator"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+        
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_employee = Employee.query.get(data['id'])
+            if not current_employee:
+                return jsonify({'message': 'Employee not found!'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token!'}), 401
+        
+        return f(current_employee, *args, **kwargs)
+    return decorated
+
 # Initialize global objects
 auth = Authentication()
 
+# email test
+@app.route('/test_email')
+def test_email():
+    with app.app_context():
+        msg = Message("Test Email", recipients=["your_email@gmail.com"])
+        msg.body = "This is a test email from Flask-Mail."
+        mail.send(msg)
+    return "Test email sent! Check your inbox."
 # Routes
 # home page
 @app.route('/')
@@ -117,26 +164,44 @@ def home():
 #about us page
 @app.route('/about')
 def about_us():
+    
     return render_template("about.html")
 
 # contact us page
-@app.route('/contact')
+@app.route('/contact', methods=['GET', 'POST'])
 def contact_us():
+    if request.method == 'POST':
+        name = request.form.get("name")
+        email = request.form.get("email")
+        message = request.form.get("message")
+
+        if not name or not email or not message:
+            flash("All fields are required!", "error")
+            return redirect(url_for('contact_us'))
+
+        # Log the message (optional)
+        logging.info(f"📩 New Contact Message: {name} ({email}) - {message}")
+
+        # You can also store this in a database or send an email here
+
+        flash("Message sent successfully! We will get back to you soon.", "success")
+        return redirect(url_for('contact_us'))  # Redirect after success
+
     return render_template("contact.html")
 
-# registration page
+
 @app.route('/register', methods=['GET', 'POST'])
 def register_user():
     if request.method == 'POST':
-        # Handle form submission
         data = request.form
         username = data.get("username")
         password = data.get("password")
-        
+        role = data.get("role")  # Get role from form
+
         # Validate input
         if not username or not password:
             return render_template("register.html", error="Username and password are required.")
-        
+
         # Password validation
         if len(password) < 10:
             return render_template("register.html", error="Password must be at least 10 characters long.")
@@ -144,38 +209,130 @@ def register_user():
             return render_template("register.html", error="Password must contain at least one number.")
         if not any(char.isalpha() for char in password):
             return render_template("register.html", error="Password must contain at least one letter.")
+
+        # Check if username already exists in both users & employees tables
+        existing_user = User.query.filter_by(username=username).first()
+        existing_employee = Employee.query.filter_by(username=username).first()
         
-        # Register user
-        if auth.register_user(username, password):
-            logging.info(f"User {username} has registered.")
-            return render_template("login.html", success="Registration successful. Please log in.")
-        else:
+        if existing_user or existing_employee:
             return render_template("register.html", error="Username already exists.")
-    
-    # Render registration page for GET request
+
+        if role == "Admin":
+            # Prevent non-admins from registering as an admin
+            if not session.get("is_admin"):
+                return render_template("register.html", error="Only an existing admin can create an admin account.")
+
+            new_user = User(username=username, is_admin=True)
+            new_user.set_password(password)
+            db.session.add(new_user)
+
+        elif role == "Employee":
+            new_employee = Employee(
+                first_name=data.get("first_name"),
+                last_name=data.get("last_name"),
+                email=data.get("email"),
+                salary=float(data.get("salary")),
+                start_date=datetime.strptime(data.get("start_date"), "%Y-%m-%d"),
+                title=data.get("title"),
+                username=username
+            )
+            new_employee.set_password(password)  # Hash the password
+            db.session.add(new_employee)
+
+        else:
+            return render_template("register.html", error="Invalid role selected.")
+
+        db.session.commit()
+        flash(f"Registration successful as {role}. Please log in.", "success")
+
+        if role == "Admin":
+            return redirect(url_for("login_user"))  # Redirect to admin login
+        else:
+            return redirect(url_for("employee_login"))  # Redirect to employee login
+
     return render_template("register.html")
+
+
+
+
 
 # login page
 @app.route('/login', methods=['GET', 'POST'])
 def login_user():
     if "username" in session:
-        flash("You are already logged in!", "info")  # Flash message
-        return redirect(url_for("dashboard"))  # ✅ Correct redirect
+        return redirect(url_for("dashboard"))
+
+    if request.method == 'POST':
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        user = User.query.filter_by(username=username).first()
+
+        if user and user.check_password(password):
+            session['username'] = user.username
+            session['is_admin'] = user.is_admin 
+            logging.info(f"User {username} logged in.")
+            return redirect(url_for("dashboard"))
+
+        flash("Invalid username or password.", "error")
+
+    return render_template("login.html")
+
+# employee login
+@app.route('/employee/login', methods=['GET', 'POST'])
+def employee_login():
+    if request.method == 'GET':
+        return render_template("employee_login.html")
 
     if request.method == 'POST':
         data = request.form
-        username = data.get("username")
-        password = data.get("password")
+        username = data.get('username')
+        password = data.get('password')
 
-        if auth.authenticate(username, password):
-            session['username'] = username  # ✅ Store username in session
-            logging.info(f"User {username} has logged in.")
-            return redirect(url_for("dashboard"))  # ✅ Redirect to dashboard (no arguments needed)
-        else:
-            flash("Invalid username or password.", "error")
-            return render_template("login.html", error="Invalid username or password.")
+        print(f"🔍 Debug: Attempting login for {username}")  # Debugging
 
-    return render_template("login.html")
+        # Find the employee
+        employee = Employee.query.filter(Employee.username.ilike(username)).first()
+
+        if not employee:
+            print("⚠ Debug: Employee not found!")
+            flash('User not found!', 'error')
+            return render_template("employee_login.html")
+
+        # Check the password
+        if not employee.check_password(password):
+            print("⚠ Debug: Incorrect password!")
+            flash('Invalid password!', 'error')
+            return render_template("employee_login.html")
+
+        # ✅ Store Employee in Session
+        session['employee_id'] = employee.id
+        session['employee_username'] = employee.username
+        session.permanent = True  # Make the session last longer
+
+        print(f"✅ Debug: {username} successfully logged in!")
+        return redirect(url_for('employee_dashboard'))  # Redirect to dashboard
+
+
+
+
+
+# employee dashboard
+@app.route('/employee/dashboard')
+def employee_dashboard():
+    if "employee_id" not in session:
+        flash("You need to log in first!", "error")
+        return redirect(url_for("employee_login"))
+
+    employee = Employee.query.get(session["employee_id"])
+    
+    if not employee:
+        flash("Employee not found!", "error")
+        session.pop("employee_id", None)  # Remove invalid session
+        return redirect(url_for("employee_login"))
+
+    return render_template("employee_dashboard.html", employee=employee)
+
 
 
 # dashboard
@@ -183,20 +340,23 @@ def login_user():
 @login_required
 def dashboard():
     if "username" not in session:
-        return redirect(url_for("login"))
+        flash("You need to log in first.", "error")
+        return redirect(url_for("login_user"))  # ✅ Redirect to login
 
-    username = session["username"]  # Retrieve username from session
-    current_date = datetime.now().strftime("%B %d, %Y")  # Generate current date
-
+    username = session["username"]
+    current_date = datetime.now().strftime("%B %d, %Y")
     return render_template("dashboard.html", username=username, current_date=current_date)
 
 
+
 # logout
-@app.route('/logout', methods=['POST', 'GET'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout_user():
-    session.pop('username', None)
-    
-    return redirect(url_for('login_user'))  # Redirect to the login page
+    """Logs out the user and redirects to the homepage"""
+    session.clear()  # ✅ Clears all session data
+    flash("You have been logged out.", "info")
+    return redirect(url_for('home'))  # ✅ Redirect to home
+
 
 # employees
 @app.route('/employees', methods=['GET'])
@@ -212,37 +372,48 @@ def get_employees():
 @app.route('/employees/add', methods=['GET', 'POST'])
 @login_required
 def add_employee():
+    if not session.get("is_admin"):
+        return jsonify({"error": "Unauthorized. Only admins can add employees."}), 403
+
     if request.method == 'POST':
         data = request.form
-        print("Received Form Data:", data)  # Debugging
-
-        start_date_str = data.get("start_date")
-        if not start_date_str:
-            print("Error: Start date is missing!")
-            return jsonify({"error": "Start date is required"}), 400
+        print(f"🔍 Debug: Received Form Data -> {data}")  # Debugging
 
         try:
+            first_name = data.get("first_name").strip()
+            last_name = data.get("last_name").strip()
+            email = data.get("email").strip()
+
+            # ✅ Ensure the email is unique
+            existing_employee = Employee.query.filter_by(email=email).first()
+            if existing_employee:
+                return jsonify({"error": "An employee with this email already exists."}), 400
+
             new_employee = Employee(
-                first_name=data.get("first_name"),
-                last_name=data.get("last_name"),
-                email=data.get("email"),
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
                 salary=float(data.get("salary")),
                 start_date=datetime.strptime(data.get("start_date"), "%Y-%m-%d"),
-                title=data.get("title")
+                title=data.get("title"),
+                username=None,  # ✅ Keep NULL (employees set this when they register)
+                password_hash=None  # ✅ Keep NULL (employees set this when they register)
             )
-            
+
             db.session.add(new_employee)
             db.session.commit()
-            print("Employee added successfully:", new_employee)
-            
+            flash("Employee added successfully!", "info")
+            print(f"✅ Debug: Employee added successfully!")
+
             return redirect(url_for('get_employees'))
-        
+
         except Exception as e:
             db.session.rollback()
-            print("Error adding employee:", str(e))  # Debugging
+            print(f"❌ Debug: Error adding employee -> {str(e)}")  # Debugging
             return jsonify({"error": str(e)}), 400
 
     return render_template("add_employee.html")
+
 
 
 # Edit employee
@@ -298,6 +469,31 @@ def delete_employee(employee_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error":f"Failed to delete employee: {str(e)}"}), 500
+    
+# data visualization
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    return render_template("admin_dashboard.html")
+
+@app.route('/api/financial_data')
+def financial_data():
+    """Fetch financial data for visualization"""
+    employees = Employee.query.all()
+    
+    total_salary = sum(emp.salary for emp in employees)
+    num_employees = len(employees)
+    monthly_revenue = round(random.uniform(300000, 500000), 2)  # Fake revenue for now
+    profit = round(monthly_revenue - total_salary, 2)
+
+    data = {
+        "total_salary": total_salary,
+        "num_employees": num_employees,
+        "monthly_revenue": monthly_revenue,
+        "profit": profit
+    }
+
+    return jsonify(data)
+
    
 
 

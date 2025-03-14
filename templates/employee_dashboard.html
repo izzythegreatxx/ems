@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <h1>Welcome, {{ employee.first_name }} {{ employee.last_name }}!</h1>
+{% endblock %}
+
+{% block content %}
+<div class="employee-profile">
+    <h2>Employee Profile</h2>
+    
+    <div class="profile-info">
+        <p><strong>Job Title:</strong> {{ employee.title }}</p>
+        <p><strong>Email:</strong> {{ employee.email }}</p>
+        <p><strong>Salary:</strong> ${{ "{:,.2f}".format(employee.salary) }}</p>
+        <p><strong>Start Date:</strong> {{ employee.start_date.strftime('%B %d, %Y') }}</p>
+    </div>
+
+    <div class="profile-actions">
+        <a href="{{ url_for('logout_user') }}" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+<style>
+    .employee-profile {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #fff;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+
+    .profile-info p {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+
+    .profile-actions {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .logout-btn {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #d9534f;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+
+    .logout-btn:hover {
+        background-color: #c9302c;
+    }
+</style>
+{% endblock %}

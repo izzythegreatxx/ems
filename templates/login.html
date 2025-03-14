@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <h1>Login</h1>
+    <h1>Administrator Login</h1>
 {% endblock %}
 
 {% block content %}
@@ -9,11 +9,11 @@
     <p style="color:red;">{{ error }}</p>
 {% endif %}
 <div class="container">
-    <form action="/login" method="POST">
-        <label>Username:</label>
-        <input type="text" name="username" required><br>
-        <label>Password:</label>
-        <input type="password" name="password" required><br>
+    <form action="{{ url_for('login_user') }}" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required><br>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required><br>
         <button class="login-button" type="submit">Login</button>   
     </form>
 </div>

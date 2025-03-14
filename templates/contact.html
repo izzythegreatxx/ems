@@ -1,7 +1,124 @@
 {% extends "base.html" %}
-{%block title%}Contact Us {%endblock%}
-{%block header%} {%endblock%}
+{% block title %}Contact Us{% endblock %}
 
-{%block content%}
+{% block header %}
+<h1>📞 Get in Touch with Us</h1>
+{% endblock %}
 
-{%endblock%}
+{% block content %}
+<div class="contact-container">
+    <section class="contact-info">
+        <h2>📍 Contact Information</h2>
+        <p><strong>Address:</strong> 1234 Main Street, Tucson, AZ</p>
+        <p><strong>Phone:</strong> <a href="tel:+15555555">+1 (555) 555-5555</a></p>
+        <p><strong>Email:</strong> <a href="sonoralignhr@gmail.com">SonorAlignHR@gmail.com</a></p>
+    </section>
+
+    <section class="contact-form">
+        <h2>📩 Send Us a Message</h2>
+        <form action="{{ url_for('contact_us') }}" method="POST">
+            <div class="form-group">
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Your Message:</label>
+                <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+
+            <button type="submit">📤 Send Message</button>
+        </form>
+    </section>
+</div>
+
+<style>
+
+    html, body {
+        height: 100%;
+        overflow-y: auto !important; /* Ensures scrolling is enabled */
+        overflow-x: hidden;
+    }
+
+    /* Main Container */
+    .contact-container {
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 25px;
+        text-align: center;
+    }
+
+    /* Headers */
+    .contact-container h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    /* Contact Information */
+    .contact-info p {
+        font-size: 18px;
+        line-height: 1.8;
+        margin-bottom: 15px;
+    }
+
+    .contact-info a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .contact-info a:hover {
+        text-decoration: underline;
+    }
+
+    /* Form Styling */
+    .form-group {
+        margin-bottom: 25px;
+        text-align: left;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f8f8f8;
+    }
+
+    .contact-form {
+        margin-top: 40px;
+    }
+
+    /* Submit Button */
+    .contact-form button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background 0.3s ease;
+    }
+
+    .contact-form button:hover {
+        background-color: #0056b3;
+    }
+
+
+</style>
+
+{% endblock %}

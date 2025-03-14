@@ -1,7 +1,79 @@
 {% extends "base.html" %}
-{%block title%}About Us {%endblock%}
-{%block header%} {%endblock%}
+{% block title %}About Us{% endblock %}
 
-{%block content%}
+{% block header %}
+<h1>About Our Employee Management System</h1>
+{% endblock %}
 
-{%endblock%}
+{% block content %}
+<div class="about-container">
+    <section class="about-intro">
+        <h2>Empowering Workforce Management</h2>
+        <p>
+            Our Employee Management System is designed to streamline HR tasks, making it easier for organizations 
+            to manage employee records, salaries, and work schedules efficiently.
+        </p>
+    </section>
+
+    <section class="features">
+        <h2>What We Offer</h2>
+        <ul>
+            <li>🔹 Secure employee record management</li>
+            <li>🔹 Salary tracking and payroll management</li>
+            <li>🔹 Easy employee login and role-based access</li>
+            <li>🔹 Automated leave and attendance tracking</li>
+            <li>🔹 Admin dashboard with full control</li>
+        </ul>
+    </section>
+
+    <section class="mission">
+        <h2>Our Mission</h2>
+        <p>
+            We believe in creating an efficient and user-friendly HR system that helps businesses 
+            focus on growth while ensuring employee satisfaction and transparency.
+        </p>
+    </section>
+
+    <section class="contact">
+        <h2>Contact Us</h2>
+        <p>
+            Have questions? Get in touch with us at 
+            <a href="mailto:support@ems.com">support@ems.com</a> or visit our 
+            <a href="{{ url_for('contact_us') }}">Contact Us</a> page.
+        </p>
+    </section>
+</div>
+
+<style>
+    .about-container {
+        max-width: 800px;
+        margin: auto;
+        text-align: center;
+        padding: 20px;
+    }
+    .about-container h2 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+    .about-container p {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    .features ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    .features li {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+    .contact a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    .contact a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+{% endblock %}

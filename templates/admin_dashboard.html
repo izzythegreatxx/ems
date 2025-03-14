@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{%block header%}
+{%endblock%}
+{% block content %}
+<div class="dashboard-container">
+    <h1>📊 Admin Dashboard</h1>
+
+    <!-- Summary Cards -->
+    <div class="summary-container">
+        <div class="card">
+            <h2>Total Employees</h2>
+            <p id="total-employees">0</p>
+        </div>
+        <div class="card">
+            <h2>Total Salaries</h2>
+            <p id="total-salary">$0</p>
+        </div>
+        <div class="card">
+            <h2>Monthly Revenue</h2>
+            <p id="monthly-revenue">$0</p>
+        </div>
+        <div class="card">
+            <h2>Net Profit</h2>
+            <p id="profit">$0</p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <canvas id="financialChart"></canvas>
+</div>
+
+<!-- Styles -->
+<style>
+    /* 🖥️ Dashboard Container */
+    .dashboard-container {
+        max-width: 900px; /* Reduced size */
+        margin: 20px auto; /* Less spacing */
+        padding: 15px;
+        text-align: center;
+    }
+
+    /* 📊 Summary Cards */
+    .summary-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px; /* Reduced spacing */
+        margin-bottom: 20px;
+    }
+
+    .card {
+        flex: 1;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+        margin: 5px;
+        text-align: center;
+    }
+
+    .card h2 {
+        margin-bottom: 5px;
+        font-size: 14px; /* Smaller text */
+    }
+
+    .card p {
+        font-size: 18px; /* Reduce numbers */
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    /* 📉 Chart Size Adjustments */
+    canvas {
+        margin-top: 10px;
+        max-width: 100%;
+        height: 250px; /* Reduce chart height */
+    }
+
+    /* 🌎 Make sure whole page fits */
+    html, body {
+        overflow: hidden; /* Prevent scrolling */
+    }
+
+</style>
+
+<!-- ChartJS Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Fetch financial data from Flask API
+    fetch("/api/financial_data")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("total-employees").textContent = data.num_employees;
+            document.getElementById("total-salary").textContent = `$${data.total_salary.toLocaleString()}`;
+            document.getElementById("monthly-revenue").textContent = `$${data.monthly_revenue.toLocaleString()}`;
+            document.getElementById("profit").textContent = `$${data.profit.toLocaleString()}`;
+
+            // Chart Data
+            const ctx = document.getElementById("financialChart").getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["Total Salaries", "Monthly Revenue", "Net Profit"],
+                    datasets: [{
+                        label: "Financial Overview",
+                        data: [data.total_salary, data.monthly_revenue, data.profit],
+                        backgroundColor: ["#ff6384", "#36a2eb", "#4caf50"]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => console.error("Error fetching financial data:", error));
+</script>
+
+{% endblock %}
