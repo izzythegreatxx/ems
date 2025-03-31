@@ -15,25 +15,34 @@
     <div class="name-container">
         <div class="input-group">
             <label for="first_name">First Name:</label>
-            <input type="text" id="first_name" name="first_name" required>
+            <input type="text" name="first_name" value="{{ employee.first_name if employee else ''}}" required><br>
         </div>
         <div class="input-group">
             <label for="last_name">Last Name:</label>
-            <input type="text" id="last_name" name="last_name" required>
+            <input type="text" name="last_name" value="{{ employee.last_name }}" required><br>
         </div>
     </div>
 
-    <label>Email:</label>
-    <input type="email" name="email" required><br>
-
-    <label>Salary:</label>
-    <input type="number" name="salary" required><br>
-
-    <label>Start Date:</label>
-    <input type="date" name="start_date" required><br>
-
-    <label>Title:</label>
-    <input type="text" name="title" required><br>
+    <div class="name-container">
+        <div class="input-group">
+            <label>Email:</label>
+            <input type="email" name="email" value="{{ employee.email }}" required><br>
+        </div>
+        <div class="input-group">
+            <label>Salary:</label>
+            <input type="number" name="salary" value="{{ employee.salary }}" required><br>
+        </div>
+    </div>
+    <div class="name-container">
+        <div class="input-group">
+            <label>Title:</label>
+            <input type="text" name="title" value="{{ employee.title }}" required><br>
+        </div>
+        <div class="input-group">
+            <label>Start Date:</label>
+            <input type="date" name="start_date" value="{{ employee.start_date }}" required><br>
+        </div>
+    </div>
     <button type="submit">Add Employee</button>
 </form>
 

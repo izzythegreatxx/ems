@@ -1,11 +1,13 @@
+# imports
+import os
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, session, render_template, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+import bcrypt
 from flask_migrate import Migrate
 from models import db, Employee, User
-from dotenv import load_dotenv
 from functools import wraps
 from datetime import datetime
-import os
 import jwt
 import logging
 from flask_mail import Mail, Message
@@ -30,6 +32,8 @@ start dates, and job titles, making HR processes more streamlined.
 """
 
 load_dotenv()
+print("DEBUG TEST - EMAIL_USER from .env:", os.getenv("EMAIL_USER"))
+
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -37,26 +41,16 @@ app = Flask(__name__)
 # Set environment variables
 app.secret_key = os.getenv("SECRET_KEY", "fallback_secret_key")
 
-# ✅ Flask-Mail Configuration (Ensure .env variables are loaded)
-app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 587))  # Convert to int
-app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "True") == "True"  # Convert to boolean
-app.config["MAIL_USERNAME"] = os.getenv("EMAIL_USER")  # Load email
-app.config["MAIL_PASSWORD"] = os.getenv("EMAIL_PASS")  # Load password
-app.config["MAIL_DEFAULT_SENDER"] = os.getenv("EMAIL_USER")  # Set sender email
-
-mail = Mail(app)
 
 serializer=URLSafeTimedSerializer(app.secret_key)
 
 
 # Configure Database URI
-# using sqlite for local development
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR}/employees.db')
+# Ensure instance folder exists
+DATABASE_URL = "sqlite:///C:/Users/joe-z/OneDrive/Desktop/code/flask_ems/instance/employees.db"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+
 
 # Initialize database
 db.init_app(app)
@@ -152,7 +146,9 @@ def test_email():
         msg.body = "This is a test email from Flask-Mail."
         mail.send(msg)
     return "Test email sent! Check your inbox."
-# Routes
+
+# ----------Routes-----------
+
 # home page
 @app.route('/')
 def home():
@@ -227,18 +223,17 @@ def register_user():
             db.session.add(new_user)
 
         elif role == "Employee":
+
             new_employee = Employee(
                 first_name=data.get("first_name"),
                 last_name=data.get("last_name"),
                 email=data.get("email"),
-                salary=float(data.get("salary")),
-                start_date=datetime.strptime(data.get("start_date"), "%Y-%m-%d"),
                 title=data.get("title"),
                 username=username
             )
-            new_employee.set_password(password)  # Hash the password
-            db.session.add(new_employee)
 
+            new_employee.set_password(password) 
+            db.session.add(new_employee)
         else:
             return render_template("register.html", error="Invalid role selected.")
 
@@ -331,7 +326,16 @@ def employee_dashboard():
         session.pop("employee_id", None)  # Remove invalid session
         return redirect(url_for("employee_login"))
 
+    # ✅ Ensure salary is always a float
+    employee.salary = employee.salary if employee.salary is not None else 0.00
+
+    # ✅ Ensure start_date is always a datetime object or None
+    if employee.start_date is None:
+        employee.start_date = None  # Keep it None (Jinja will handle it)
+
     return render_template("employee_dashboard.html", employee=employee)
+
+
 
 
 
@@ -396,23 +400,23 @@ def add_employee():
                 salary=float(data.get("salary")),
                 start_date=datetime.strptime(data.get("start_date"), "%Y-%m-%d"),
                 title=data.get("title"),
-                username=None,  # ✅ Keep NULL (employees set this when they register)
-                password_hash=None  # ✅ Keep NULL (employees set this when they register)
+                username=None,  # keep null. Employees will set this when they register
+                password_hash=None   # keep null. Employees will set this when they register
             )
 
             db.session.add(new_employee)
             db.session.commit()
             flash("Employee added successfully!", "info")
-            print(f"✅ Debug: Employee added successfully!")
+            print(f"Debug: Employee added successfully!")
 
             return redirect(url_for('get_employees'))
 
         except Exception as e:
             db.session.rollback()
-            print(f"❌ Debug: Error adding employee -> {str(e)}")  # Debugging
+            print(f"Debug: Error adding employee -> {str(e)}")  # Debugging
             return jsonify({"error": str(e)}), 400
 
-    return render_template("add_employee.html")
+    return render_template("add_employee.html", employee = None)
 
 
 
@@ -426,7 +430,7 @@ def edit_employee(employee_id):
         data = request.form if request.method == 'POST' else request.get_json()
         
         try:
-            # Update employee fields
+            
             employee.first_name = data.get("first_name", employee.first_name)
             employee.last_name = data.get("last_name", employee.last_name)
             employee.email = data.get("email", employee.email)
@@ -494,7 +498,26 @@ def financial_data():
 
     return jsonify(data)
 
-   
+@app.before_first_request
+def create_first_admin():
+    from models import User
+
+    admin_exists = User.query.filter_by(is_admin=True).first()
+
+    if not admin_exists:
+        username = os.getenv("FIRST_ADMIN_USERNAME", "admin")
+        password = os.getenv("FIRST_ADMIN_PASSWORD", "admin123")
+        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+        default_admin = User(
+            username=username,
+            password_hash=hashed_pw,
+            is_admin=True
+        )
+
+        db.session.add(default_admin)
+        db.session.commit()
+        print(f"✅ Default admin created: [{username}] / [{password}]")
 
 
 

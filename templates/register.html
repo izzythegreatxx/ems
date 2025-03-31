@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Register{% endblock %}
-{% block header %}<h1>Create an account!</h1>{% endblock %}
+{% block header %}<h1 class="register-header">Create an account!</h1>{% endblock %}
 
 {% block content %}
 <div class="reg-container">
@@ -22,11 +22,16 @@
                 <input type="text" id="last_name" name="last_name" required>
             </div>
         </div>
-        <br>
-        <label for="email">Email:</label>
-        <br>
-        <input type="email" id="email" name="email" required>
-        <br>
+        <div class="name-container">
+            <div class="input-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="input-group">
+                <label for="title">Job Title:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+        </div>
         <label for="username">Username:</label>
         <br>
         <input type="text" id="username" name="username" required>

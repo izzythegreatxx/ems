@@ -11,8 +11,20 @@
     <div class="profile-info">
         <p><strong>Job Title:</strong> {{ employee.title }}</p>
         <p><strong>Email:</strong> {{ employee.email }}</p>
-        <p><strong>Salary:</strong> ${{ "{:,.2f}".format(employee.salary) }}</p>
+
+       
+        {% if employee.salary is not none %}
+            <p><strong>Salary:</strong> ${{ "{:,.2f}".format(employee.salary) }}</p>
+        {% else %}
+            <p><strong>Salary:</strong> Not available</p>
+        {% endif %}
+
+
+        {% if employee.start_date is not none %}
         <p><strong>Start Date:</strong> {{ employee.start_date.strftime('%B %d, %Y') }}</p>
+        {% else %}
+        <p><strong>Start Date:</strong> Not available</p>
+        {% endif %}
     </div>
 
     <div class="profile-actions">

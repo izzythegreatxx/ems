@@ -1,30 +1,45 @@
 {% extends "base.html" %}
 
 {% block title %}Edit Employee{% endblock %}
-{%block header%}
-{%endblock%}
+{% block header %}{% endblock %}
 
 {% block content %}
+
 <h1>Edit Employee: {{ employee.first_name }} {{ employee.last_name }} (ID: {{employee.id}})</h1>
-<form id="editForm" data-employee-id="{{ employee.id}}" onsubmit="submitForm(event)">
+
+<form id="editForm" data-employee-id="{{ employee.id }}" onsubmit="submitForm(event)">
     <div class="name-container">
         <div class="input-group">
             <label for="first_name">First Name:</label>
             <input type="text" name="first_name" value="{{ employee.first_name }}" required><br>
         </div>
         <div class="input-group">
-            <labe for="last_name"l>Last Name:</labe>
+            <label for="last_name">Last Name:</label>
             <input type="text" name="last_name" value="{{ employee.last_name }}" required><br>
         </div>
     </div>
-    <label>Email:</label>
-    <input type="email" name="email" value="{{ employee.email }}" required><br>
-    <label>Salary:</label>
-    <input type="number" name="salary" value="{{ employee.salary }}" required><br>
-    <label>Start Date:</label>
-    <input type="date" name="start_date" value="{{ employee.start_date }}" required><br>
-    <label>Title:</label>
-    <input type="text" name="title" value="{{ employee.title }}" required><br>
+
+    <div class="name-container">
+        <div class="input-group">
+            <label>Email:</label>
+            <input type="email" name="email" value="{{ employee.email }}" required><br>
+        </div>
+        <div class="input-group">
+            <label>Salary:</label>
+            <input type="number" name="salary" value="{{ employee.salary }}" required><br>
+        </div>
+    </div>
+    <div class="name-container">
+        <div class="input-group">
+            <label>Title:</label>
+            <input type="text" name="title" value="{{ employee.title }}" required><br>
+        </div>
+        <div class="input-group">
+            <label>Start Date:</label>
+            <input type="date" name="start_date" value="{{ employee.start_date }}" required><br>
+        </div>
+    </div>
+
     <button type="submit">Save Changes</button>
 </form>
 <a href="/employees">Back</a>

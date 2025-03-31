@@ -1,5 +1,4 @@
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 import bcrypt
 
@@ -15,12 +14,14 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
-    @staticmethod
-    def hash_password(password):
-        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    
+    def set_password(self, password):
+        """Hashes and sets the password."""
+        self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
     def check_password(self, password):
+        """Verifies the password."""
         return bcrypt.checkpw(password.encode(), self.password_hash.encode())
+
 
 # Employee Model (For Employees)
 class Employee(db.Model):
@@ -30,9 +31,9 @@ class Employee(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    salary = db.Column(db.Float, nullable=False)
-    start_date = db.Column(db.Date, nullable=False)
-    title = db.Column(db.String(50), nullable=False)
+    salary = db.Column(db.Float, nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    title = db.Column(db.String(50), nullable=True)
     username = db.Column(db.String(50), unique=True, nullable=True)
     password_hash = db.Column(db.String(128), nullable=True)
 

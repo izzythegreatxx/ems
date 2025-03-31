@@ -8,14 +8,15 @@
 {% block content %}
 <div class="contact-container">
     <section class="contact-info">
-        <h2>📍 Contact Information</h2>
+        <h2>Contact Information</h2>
         <p><strong>Address:</strong> 1234 Main Street, Tucson, AZ</p>
         <p><strong>Phone:</strong> <a href="tel:+15555555">+1 (555) 555-5555</a></p>
-        <p><strong>Email:</strong> <a href="sonoralignhr@gmail.com">SonorAlignHR@gmail.com</a></p>
+        <p><strong>Email:</strong> <p style="color: blue;">SonorAlignHR@gmail.com</p>
+
     </section>
 
     <section class="contact-form">
-        <h2>📩 Send Us a Message</h2>
+        <h2>Send Us a Message</h2>
         <form action="{{ url_for('contact_us') }}" method="POST">
             <div class="form-group">
                 <label for="name">Your Name:</label>
