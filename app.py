@@ -47,9 +47,11 @@ serializer=URLSafeTimedSerializer(app.secret_key)
 
 # Configure Database URI
 # Ensure instance folder exists
-DATABASE_URL = "sqlite:///C:/Users/joe-z/OneDrive/Desktop/code/flask_ems/instance/employees.db"
-
-app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+# Use DATABASE_URL from environment, fallback to local SQLite
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "DATABASE_URL", 
+    "sqlite:///instance/employees.db"
+)
 
 
 # Initialize database
