@@ -211,6 +211,9 @@ def register_user():
             # ✅ Allow admin creation only if:
             # - user is already an admin OR
             # - no admins exist in the database yet (bootstrapping)
+            
+            print("🧪 Admins in DB:", User.query.filter_by(is_admin=True).count()) # debug statement
+
 
             admin_exists = User.query.filter_by(is_admin=True).first()
             if not session.get("is_admin") and admin_exists:
