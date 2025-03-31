@@ -138,14 +138,6 @@ def token_required(f):
 # Initialize global objects
 auth = Authentication()
 
-# email test
-@app.route('/test_email')
-def test_email():
-    with app.app_context():
-        msg = Message("Test Email", recipients=["your_email@gmail.com"])
-        msg.body = "This is a test email from Flask-Mail."
-        mail.send(msg)
-    return "Test email sent! Check your inbox."
 
 # ----------Routes-----------
 
