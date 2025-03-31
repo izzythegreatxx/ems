@@ -208,8 +208,12 @@ def register_user():
             return render_template("register.html", error="Username already exists.")
 
         if role == "Admin":
-            # Prevent non-admins from registering as an admin
-            if not session.get("is_admin"):
+            # ✅ Allow admin creation only if:
+            # - user is already an admin OR
+            # - no admins exist in the database yet (bootstrapping)
+
+            admin_exists = User.query.filter_by(is_admin=True).first()
+            if not session.get("is_admin") and admin_exists:
                 return render_template("register.html", error="Only an existing admin can create an admin account.")
 
             new_user = User(username=username, is_admin=True)
