@@ -208,23 +208,13 @@ def register_user():
             return render_template("register.html", error="Username already exists.")
 
         if role == "Admin":
-            # ✅ Allow admin creation only if:
-            # - user is already an admin OR
-            # - no admins exist in the database yet (bootstrapping)
-            
-            print("🧪 Admins in DB:", User.query.filter_by(is_admin=True).count()) # debug statement
-
-
-            admin_exists = User.query.filter_by(is_admin=True).first()
-            if not session.get("is_admin") and admin_exists:
-                return render_template("register.html", error="Only an existing admin can create an admin account.")
-
+            # 🔓 TEMPORARY: Allow anyone to register as Admin for presentation/demo purposes
+            # ⚠️ NOTE: Restore admin restriction after demo to prevent security risks!
             new_user = User(username=username, is_admin=True)
             new_user.set_password(password)
             db.session.add(new_user)
 
         elif role == "Employee":
-
             new_employee = Employee(
                 first_name=data.get("first_name"),
                 last_name=data.get("last_name"),
@@ -232,8 +222,7 @@ def register_user():
                 title=data.get("title"),
                 username=username
             )
-
-            new_employee.set_password(password) 
+            new_employee.set_password(password)
             db.session.add(new_employee)
         else:
             return render_template("register.html", error="Invalid role selected.")
@@ -247,8 +236,6 @@ def register_user():
             return redirect(url_for("employee_login"))  # Redirect to employee login
 
     return render_template("register.html")
-
-
 
 
 
